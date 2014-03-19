@@ -1,0 +1,45 @@
+//Log of changes, with update instructions
+
+// gClassFolders V2.1.2
+// Changes made to functions used to move folders in school mode, improving reliability.
+// Added archiving feature for archiving a single class at a time.
+
+// gClassFolders V2.1.1
+// Fixed bug introduced in V2.1.0 that prevented bulk operations from working properly
+
+// gClassFolders V2.1.0
+// Fixed issues with CacheService getting called for every string stored for the folder labels and internationalization.
+// Significantly reduced runtime for school mode
+
+// gClassFolders V2.0.4
+// Fixed issue with scriptProperties getting called too many times in short succession during folder creation process.
+
+// gClassFolders V2.0.2
+// Fixed issue with internationalization file causing errors for students when they receive email link to move their folders.
+// 
+// Update steps: (only necessary for folks running in school mode)  
+//1)  Copy contents of insternationalization file from V2.0.2 and paste over your existing internationalization file.  
+//2)  Republish a new version of the web app by going to File -> Manage Versions and saving a new version.  
+//3)  Go to Publish menu and republish the web app with the new version number.  Make sure the web app is published to run
+// as the logged in user, and that anyone on the domain can run it.
+
+// gClassFolders V3.0
+// Stripped out school mode and internationalization
+// Stripped out all ScriptDB dependencies
+// Stripped out institutional tracking analytics (left in place anonymous analytics)
+// Replaced all soon-to-be deprecated DocsList methods with DriveApp methods
+// Converted all properties methods to new PropertiesService
+// Put in place rudiments for converting to a "language pack" approach to internationalization
+// To do: All strings must be abstracted as properties of the global LANG object defined the 
+// topmost file of this project before internationalization can work.  Time consuming and not within the scope of this release.
+
+gClassFolders V3.1
+
+ToDo
+~ Convert menus to add-on
+~ Hide ID columns in function createRosterSheet()
+~ Add quick send (light docutopus)
+~ Lock initial settings dialogue when Create folders and shares are run
+~ Prompt to set labels if unlocked
+
+
