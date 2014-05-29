@@ -6,6 +6,8 @@
 // See restrictions at http://www.opensource.org/licenses/gpl-3.0.html
 // Version 3.0 (3/15/14) ported as a script to the New Google Sheets by Andrew Stillman.  Please do not contact re: maintenance issues.
 // Version 3.1 maintained by Bjorn Behrendt.  Post all support issues to https://plus.google.com/communities/115718335045383669895
+// version 3.2 brought back integration with Doctopus.
+// version 4 (5/29/14) Launched as add-on 
 
 
 //To do: All strings in the UI can be abstracted as properties of language objects
@@ -31,3 +33,7 @@ var LANG_SV = {
 var LANG = LANG_EN;
 var locale = Session.getActiveUserLocale();
 if(locale == 'sv') LANG = LANG_SV;
+
+
+//var file = Drive.Files.get(fileId);
+//Drive.Permissions.insert(file, file, optionalArgs)
