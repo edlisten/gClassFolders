@@ -1,13 +1,29 @@
-
+//function createClassFolders_runLabels(){ //Create student folders
+//
+//  if (setupGcfCheck() == false){ return;}
+//  
+//  // Check if gCF has already ran
+//  var documentProperties = PropertiesService.getDocumentProperties();
+//  documentProperties.setProperty('runCreate', 'false');
+//  var properties = documentProperties.getProperties();
+//  var ui = SpreadsheetApp.getUi();
+//  
+//  if (properties.alreadyRan == "false"){
+//    createFolderIdHeadings();
+//    var labelssaved = this.labels().saved;
+//    if (labelssaved =="false"){
+//         documentProperties.setProperty('runCreate', 'true');
+//         renameFolderLabels();
+//          return;
+//    } else { createClassFolders2(); }
+//  } else { createClassFolders2(); }
+//}
 
 
 function createClassFolders(){ //Create student folders
-  //this step looks to see if the currently logged in user is looking to 
-  //transfer ownership of folders to another teacher
-  //sortsheet();
   
-  //if initialSettings False open up Create Labels
-  //PropertiesService.getDocumentProperties().setProperty('initialSettings', true);
+  createFolderIdHeadings();
+  writeProperties();
   
   removeResumeTrigger();
   var lock = LockService.getPublicLock();
@@ -19,22 +35,26 @@ function createClassFolders(){ //Create student folders
     var dropBoxLabel = this.labels().dropBox;
     var dropBoxLabels = this.labels().dropBoxes;
     var periodLabel = this.labels().period;
+    var editLabel = this.labels().edit;
+    var viewLabel = this.labels().view;
+    var teacherLabel = this.labels().teacher;
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var ssOwner = ss.getOwner().getEmail().toLowerCase();
     var currUser = Session.getEffectiveUser().getEmail().toLowerCase();
     var sheet = getRosterSheet(); 
-    var dataRange = sheet.getDataRange().getValues();
+    //var dataRange = sheet.getDataRange().getValues();
     var labelObject = this.labels();
-    var indices = returnIndices(dataRange, labelObject);
+    //var indices = returnIndices(dataRange, labelObject);
+    var indices = returnIndices();
     var driveRoot = call(function() {return DriveApp.getRootFolder();});
     
     
     
     //This function adds robustness to the script by ensuring that we are looking in the correct
     //array indices for each of the elements.  If essential headers are missing, user is prompted to allow the script to auto-repair them.
-    var indices = returnIndices(dataRange, labelObject);
-    saveIndices(indices);
-    writeProperties();
+//    var indices = returnIndices(dataRange, labelObject);
+//    saveIndices(indices);
+    //writeProperties();
     SpreadsheetApp.setActiveSheet(sheet);
     //Sort by class, period, and last name to help consolidate rosters.  
     //note that this step is no longer technically necessary to ensure folder uniqueness.
@@ -115,16 +135,16 @@ function createClassFolders(){ //Create student folders
               return;
             }
           }
-          try {
-            gClassFolders_logTeacherClassFolderCreated();
-          } catch(err) {
-          }
+//          try {
+//            gClassFolders_logTeacherClassFolderCreated();
+//          } catch(err) {
+//          }
           var clsFolderId = clsFolder.getId();
           dataRange[i][indices.crfIdIndex] = clsFolderId;
           clsFoldersCreated.push(clsName);
-          var classEdit = clsName +" - Edit";  
-          var classView = clsName +" - View"; 
-          var teacherFolderLabel = clsName + " - Teacher";
+          var classEdit = clsName +" - "+ editLabel;  
+          var classView = clsName +" - "+ viewLabel; 
+          var teacherFolderLabel = clsName + " - "+ teacherLabel;
           var tMessage = "Folders created for " + clsName;
           //treat the first listed teacher email as primary...allow secondary teachers to be added
           for (var j=0; j<tEmails.length; j++) {//Transfer ownership of rootFolder to teacher if teacher email is designated.  Check that designated email is not the user running the script.
@@ -142,7 +162,12 @@ function createClassFolders(){ //Create student folders
             }
             sheet.getRange(i+1, indices.tShareStatusIndex+1).setValue(tMessage);
             if ((tEmails[j]!=userEmail)&&(editors.indexOf(tEmails[j])==-1)) {
+              try {  
               ss.addViewer(tEmails[j]);
+              } catch(err) {
+              // Browser.msgBox("Teacher email is invalid"); 
+              }
+            
             }
           }
           //Create class edit, class view, and dropbox sub-folders
@@ -307,4 +332,61 @@ function createDropbox(sLnameF,sFnameF,sEmailF,clsNameF,classEditIdF,classViewId
     }
   } 
   return returnObject;
+}
+
+
+
+//Function used to create folder Id Headings when the user runs the folder creation process
+//If the user is re-running folder creation, this checks to see if the headings exist
+function createFolderIdHeadings(){
+  var sheet = getRosterSheet();
+  var lastCol = sheet.getLastColumn();
+  var headers = sheet.getRange(2, 1, 1, sheet.getLastColumn()).getValues()[0];
+//  var teststatus = defaultIDsI.status;
+//  var testif = headers.indexOf(defaultIDsI.status);
+//  Logger.clear();
+  
+  if (headers.indexOf(defaultIDsI.status)==-1) {
+   sheet.getRange(1, lastCol+1, 2, 8).setValues([[defaultIDs.status, defaultIDs.assignmentFID, defaultIDs.classRootFID, defaultIDs.classViewFID, defaultIDs.classEditFID, defaultIDs.rootStudentFID, defaultIDs.teacherFID, defaultIDs.teacherShareStatus],[defaultIDsI.status, defaultIDsI.assignmentFID, defaultIDsI.classRootFID, defaultIDsI.classViewFID, defaultIDsI.classEditFID, defaultIDsI.rootStudentFID, defaultIDsI.teacherFID, defaultIDsI.teacherShareStatus]]);
+
+  var hideColumnRange = sheet.getRange("H:N");
+  sheet.hideColumn(hideColumnRange);
+  SpreadsheetApp.flush();
+  
+    returnIndices();
+  }// end if headers exist
+  // set the inducies
+  
+}
+
+ //Adds properties sheet, This is used for integration with Doctopus
+function writeProperties() {
+  var properties = PropertiesService.getDocumentProperties().getProperties();
+  var gClassRoster = getRosterSheet();
+  var propertyArray = [];
+  var i = 0;
+  for (var key in properties) {
+    propertyArray[i] = [];
+    propertyArray[i][0] = key;
+    propertyArray[i][1] = properties[key]
+    i++;
+  }
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet  = ss.getSheetByName('Properties');
+  if (!sheet) {
+    sheet = ss.insertSheet('Properties');
+  }
+  sheet.getRange(1, 1, propertyArray.length, 2).setValues(propertyArray);
+  sheet.getRange("A1").setComment("This sheet is used by gClassHub to understand how your roster is organized.");
+  //set focus back to 'gClassFolders'
+  
+//  SpreadsheetApp.flush();
+  sheet.hideSheet();
+  SpreadsheetApp.flush();
+  SpreadsheetApp.setActiveSheet(gClassRoster);
+  SpreadsheetApp.flush();
+  
+  
+  //{"rsfIdIndex":12,"clsNameIndex":3,"sFnameIndex":1,"tfIdIndex":13,"clsPerIndex":4,"scfIdIndex":-1,"tEmailIndex":5,"tShareStatusIndex":7,"sEmailIndex":2,"sLnameIndex":0,"cvfIdIndex":10,"cefIdIndex":11,"dbfIdIndex":8,"sDropStatusIndex":6,"crfIdIndex":9}
+  
 }
